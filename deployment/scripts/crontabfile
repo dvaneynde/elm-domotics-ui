@@ -1,2 +1,0 @@
-# Every minute run watchdog for domotic
-* * * * *	/home/dirk/domotic/watchdog.sh >/home/dirk/domotic/cron.out
