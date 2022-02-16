@@ -1,19 +1,31 @@
 # elm-domotica-ui
 
+> Note: git log shows too many entries, repository was once an everything-combined repo, which was not a good idea.
+
 ## Development Environment
 
-Versie 0.18 van ELM.
+Use ELM version 0.18.
 
 ```bash
 npm install elm@0.18
 ```
 
-## Installatie
+## Development Run
 
-1. In domotic.elm, zet urlBase naar ip van domotica host
-1. Voer volgende commandos uit:
+In domotic.elm, change urlBase to your host's IP, e.g. `192.168.0.10:8080` or `localhost:8080`.
+
+Then:
+```bash
+elm reactor
+```
+
+## Installation
+
+In domotic.elm, change urlBase to your host's IP, e.g. `192.168.0.10:8080` or `localhost:8080`.
+
+Next:
 
 ```bash
-$ elm make domotic.elm --output domotic.js
-$ scp domotic.js domotica3:/home/dirk/domotic/static
+elm make domotic.elm --output domotic.js
+scp domotic.js domotica3:/home/dirk/domotic/static
 ```
