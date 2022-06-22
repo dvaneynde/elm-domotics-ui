@@ -102,7 +102,7 @@ statusDecoder =
 updateStatusViaRestCmd : String -> String -> Cmd Msg
 updateStatusViaRestCmd name value =
     let
-        url = "http://localhost:8080/rest/act/" ++ name ++ "/" ++ value
+        url = "http://localhost:80/rest/act/" ++ name ++ "/" ++ value
         request = Http.get url statusesDecoder
     in
         --Task.perform RestError NewStatusViaRest ()
@@ -111,7 +111,7 @@ updateStatusViaRestCmd name value =
 updateStatusViaRestCmdString : String -> String -> Cmd Msg
 updateStatusViaRestCmdString name value =
     let
-        url = "http://localhost:8080/rest/act/" ++ name ++ "/" ++ value
+        url = "http://localhost:80/rest/act/" ++ name ++ "/" ++ value
         request = Http.getString url
     in
         Http.send NewStatusViaRestString request

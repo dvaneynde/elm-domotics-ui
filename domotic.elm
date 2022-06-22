@@ -35,8 +35,8 @@ import Material.Menu as Menu
 -}
 fixHost : Maybe String
 fixHost =
-    Just "192.168.0.10:8080"
-    --Just "127.0.0.1:8080"
+    Just "192.168.0.10:80"
+    --Just "127.0.0.1:80"
     --Nothing
 
 {-

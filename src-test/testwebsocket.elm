@@ -18,12 +18,12 @@ main =
 
 echoServer : String
 echoServer =
-    "ws://localhost:8080/time/"
+    "ws://localhost:80/time/"
 
 
 
--- "http://localhost:8080/time/"
--- Probleem: eerste http via web server, dan "ws://localhost:8080/time/"
+-- "http://localhost:80/time/"
+-- Probleem: eerste http via web server, dan "ws://localhost:80/time/"
 -- MODEL
 
 
