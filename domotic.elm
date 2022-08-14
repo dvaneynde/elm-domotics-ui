@@ -54,7 +54,7 @@ getHost location =
 
 urlUpdateActuators : Model -> String
 urlUpdateActuators model =
-    "http://" ++ model.host ++ "/rest/act/"
+    "http://" ++ model.host ++ "/rest/actuators/"
 
 
 
@@ -146,7 +146,8 @@ type Msg
     | SliderMsg String Float
     | ToggleShowBlock String
     | NewStatusViaWs String
-    | NewStatusViaRest (Result Http.Error (List StatusRecord))
+    -- If POST returns new status, then PostActuatorResult (Result Http.Error (List StatusRecord))
+    | PostActuatorResult (Result Http.Error Bool)
     | LocationChanged Location
 
 
@@ -211,13 +212,16 @@ update msg model =
 
         ToggleShowBlock name ->
             ( { model | group2Expanded = (toggleGroup2Open model.group2Expanded name) }, Cmd.none )
-
-        NewStatusViaRest (Ok newStatuses) ->
+{-
+        PostActuatorResult (Ok newStatuses) ->
             ( { model | groups = createGroups newStatuses, errorMsg = "OK" }, Cmd.none )
+-}
+        PostActuatorResult (Ok bool) ->
+            (  model, Cmd.none )
 
-        NewStatusViaRest (Err message) ->
-            ( { model | errorMsg = ("NewStatusViaRest: " ++ (toString message)) }, Cmd.none )
-
+        PostActuatorResult (Err message) ->
+            ( { model | errorMsg = ("PostActuatorResult: " ++ (toString message)) }, Cmd.none )
+        
         LocationChanged location ->
             ( { model | host = getHost location }, Cmd.none )
 
@@ -315,10 +319,10 @@ updateStatusViaRestCmd model name value =
             urlUpdateActuators model ++ name ++ "/" ++ value
 
         request =
-            Http.get url statusesDecoder
+            Http.post url Http.emptyBody (succeed True)
+            -- if POST returns new statuses, use statusesDecoder instead of (succeed True)
     in
-        --Task.perform RestError NewStatusViaRest ()
-        Http.send NewStatusViaRest request
+        Http.send PostActuatorResult request
 
 
 
