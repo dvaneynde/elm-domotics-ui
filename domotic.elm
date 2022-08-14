@@ -1,6 +1,7 @@
 module Domotic exposing (..)
 
 import Dict
+import Maybe
 import Html exposing (Html, button, div, text, span, input, label, br, meter)
 import Html.Attributes exposing (..)
 import Html.Events exposing (onClick, onCheck)
@@ -102,7 +103,7 @@ type alias Groups =
     Dict.Dict String (List StatusRecord)
 
 type alias Model =
-    { groups : Groups, group2Expanded : Group2ExpandedDict, errorMsg : String, test : String, mdl : Material.Model, host : String }
+    { groups : Groups, group2Expanded : Group2ExpandedDict, errorMsg : Maybe String, test : String, mdl : Material.Model, host : String }
 
 
 initialStatus : StatusRecord
@@ -112,7 +113,7 @@ initialStatus =
 
 init : Location -> ( Model, Cmd Msg )
 init location =
-    ( { groups = Dict.empty, group2Expanded = initGroups, errorMsg = "None", test = "nothing tested", mdl = Material.model, host = getHost location }, Cmd.none )
+    ( { groups = Dict.empty, group2Expanded = initGroups, errorMsg = Nothing, test = "nothing tested", mdl = Material.model, host = getHost location }, Cmd.none )
 
 
 initGroups : Group2ExpandedDict
@@ -209,25 +210,25 @@ update msg model =
                 Ok newStatuses ->
                     ( { model | groups = createGroups newStatuses }, Cmd.none )
                 Err error ->
-                    ( { model | errorMsg = error }, Cmd.none )
+                    ( { model | errorMsg = Just error }, Cmd.none )
 
         ToggleShowBlock name ->
             ( { model | group2Expanded = (toggleGroup2Open model.group2Expanded name) }, Cmd.none )
 {-
         PostActuatorResult (Ok newStatuses) ->
-            ( { model | groups = createGroups newStatuses, errorMsg = "OK" }, Cmd.none )
+            ( { model | groups = createGroups newStatuses, errorMsg = Nothing }, Cmd.none )
 -}
         PostActuatorResult (Ok bool) ->
             (  model, Cmd.none )
 
         PostActuatorResult (Err message) ->
-            ( { model | errorMsg = ("PostActuatorResult: " ++ (toString message)) }, Cmd.none )
+            ( { model | errorMsg = Just ("PostActuatorResult: " ++ (toString message)) }, Cmd.none )
         
         LocationChanged location ->
             ( { model | host = getHost location }, Cmd.none )
 
         ClearErrorMessage ->
-            ( { model | errorMsg = "None." }, Cmd.none )
+            ( { model | errorMsg = Nothing }, Cmd.none )
 
 
 -- Takes list of StatusRecords and creates the Groups
@@ -595,6 +596,13 @@ lightPercentage level =
     (level - 3000) / 40
 
 
+viewError : Model -> Html Msg
+viewError model =
+    case model.errorMsg of
+        Nothing -> div [] []
+        Just msg -> div [] [ button [onClick ClearErrorMessage] [ text "Clear"], text "Error: ", text msg ]
+
+
 view : Model -> Html Msg
 view model =
     div [ Html.Attributes.style [ ( "padding", "2rem" ), ( "background", "azure" ) ] ]
@@ -616,11 +624,11 @@ view model =
          , viewGroup viewSwitches "Kinderen" 600 model
          , viewGroup viewSwitches "Buiten" 700 model
          , div [] [ Html.hr [] [] ]
-         , div [] [ button [onClick ClearErrorMessage] [ text "Clear"], text "Error: ", text model.errorMsg ]
          , div [ Html.Attributes.style [ ( "background", "DarkSlateGrey" ), ( "color", "white" ) ] ]
             [ button [ onClick PutModelInTestAsString ] [ text "Test" ]
             , text model.test
             ]
+         , viewError model
          ]
         )
         |> Scheme.topWithScheme Color.Green Color.Red
