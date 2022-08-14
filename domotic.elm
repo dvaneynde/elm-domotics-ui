@@ -112,7 +112,7 @@ initialStatus =
 
 init : Location -> ( Model, Cmd Msg )
 init location =
-    ( { groups = Dict.empty, group2Expanded = initGroups, errorMsg = "No worries...", test = "nothing tested", mdl = Material.model, host = getHost location }, Cmd.none )
+    ( { groups = Dict.empty, group2Expanded = initGroups, errorMsg = "None", test = "nothing tested", mdl = Material.model, host = getHost location }, Cmd.none )
 
 
 initGroups : Group2ExpandedDict
@@ -149,6 +149,7 @@ type Msg
     -- If POST returns new status, then PostActuatorResult (Result Http.Error (List StatusRecord))
     | PostActuatorResult (Result Http.Error Bool)
     | LocationChanged Location
+    | ClearErrorMessage
 
 
 update : Msg -> Model -> ( Model, Cmd Msg )
@@ -203,12 +204,12 @@ update msg model =
         SliderMsg what level ->
             ( model, updateStatusViaRestCmd model what (toString level) )
 
-        NewStatusViaWs str ->
-            let
-                ( newStatuses, error ) =
-                    decodeStatuses str
-            in
-                ( { model | groups = createGroups newStatuses, errorMsg = error }, Cmd.none )
+        NewStatusViaWs strJson ->
+            case decodeString statusesDecoder strJson of
+                Ok newStatuses ->
+                    ( { model | groups = createGroups newStatuses }, Cmd.none )
+                Err error ->
+                    ( { model | errorMsg = error }, Cmd.none )
 
         ToggleShowBlock name ->
             ( { model | group2Expanded = (toggleGroup2Open model.group2Expanded name) }, Cmd.none )
@@ -224,6 +225,9 @@ update msg model =
         
         LocationChanged location ->
             ( { model | host = getHost location }, Cmd.none )
+
+        ClearErrorMessage ->
+            ( { model | errorMsg = "None." }, Cmd.none )
 
 
 -- Takes list of StatusRecords and creates the Groups
@@ -255,20 +259,6 @@ toggleGroup2Open group2Expanded name =
                         Just True
     in
         Dict.update name func group2Expanded
-
-
-decodeStatuses : String -> ( List StatusRecord, String )
-decodeStatuses strJson =
-    let
-        result =
-            decodeString statusesDecoder strJson
-    in
-        case result of
-            Ok value ->
-                ( value, "" )
-
-            Err error ->
-                ( [], error )
 
 
 statusesDecoder : Decoder (List StatusRecord)
@@ -626,7 +616,7 @@ view model =
          , viewGroup viewSwitches "Kinderen" 600 model
          , viewGroup viewSwitches "Buiten" 700 model
          , div [] [ Html.hr [] [] ]
-         , div [] [ text "Error: ", text model.errorMsg ]
+         , div [] [ button [onClick ClearErrorMessage] [ text "Clear"], text "Error: ", text model.errorMsg ]
          , div [ Html.Attributes.style [ ( "background", "DarkSlateGrey" ), ( "color", "white" ) ] ]
             [ button [ onClick PutModelInTestAsString ] [ text "Test" ]
             , text model.test
