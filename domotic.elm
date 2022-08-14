@@ -103,7 +103,7 @@ type alias Groups =
     Dict.Dict String (List StatusRecord)
 
 type alias Model =
-    { groups : Groups, group2Expanded : Group2ExpandedDict, errorMsg : Maybe String, test : String, mdl : Material.Model, host : String }
+    { groups : Groups, group2Expanded : Group2ExpandedDict, errorMsg : Maybe String, testMsg : Maybe String, mdl : Material.Model, host : String }
 
 
 initialStatus : StatusRecord
@@ -113,7 +113,7 @@ initialStatus =
 
 init : Location -> ( Model, Cmd Msg )
 init location =
-    ( { groups = Dict.empty, group2Expanded = initGroups, errorMsg = Nothing, test = "nothing tested", mdl = Material.model, host = getHost location }, Cmd.none )
+    ( { groups = Dict.empty, group2Expanded = initGroups, errorMsg = Nothing, testMsg = Nothing, mdl = Material.model, host = getHost location }, Cmd.none )
 
 
 initGroups : Group2ExpandedDict
@@ -138,6 +138,8 @@ statusByName name groups =
 
 type Msg
     = PutModelInTestAsString
+    | ClearTestMessage
+    | ClearErrorMessage
     | Mdl (Material.Msg Msg)
     | Clicked String
     | ClickedEco String
@@ -150,16 +152,20 @@ type Msg
     -- If POST returns new status, then PostActuatorResult (Result Http.Error (List StatusRecord))
     | PostActuatorResult (Result Http.Error Bool)
     | LocationChanged Location
-    | ClearErrorMessage
+    | CollapseAllGroups
+    | OpenAllGroups
 
 
 update : Msg -> Model -> ( Model, Cmd Msg )
 update msg model =
     case msg of
         PutModelInTestAsString ->
---            ( { model | test = (toString { model | test = "" }.groups) }, Cmd.none )
---            ( { model | test = (toString (Dict.get "Beneden" { model | test = "" }.groups)) }, Cmd.none )
-            ( { model | test = (toString { model | test = "" }) }, Cmd.none )
+--            ( { model | testMsg = (toString { model | testMsg = "" }.groups) }, Cmd.none )
+--            ( { model | testMsg = (toString (Dict.get "Beneden" { model | testMsg = "" }.groups)) }, Cmd.none )
+            ( { model | testMsg = Just (toString { model | testMsg = (Just "TestTestTest") }) }, Cmd.none )
+
+        ClearTestMessage ->
+            ( { model | testMsg = Nothing }, Cmd.none )
 
         Mdl message_ ->
             Material.update Mdl message_ model
@@ -214,6 +220,11 @@ update msg model =
 
         ToggleShowBlock name ->
             ( { model | group2Expanded = (toggleGroup2Open model.group2Expanded name) }, Cmd.none )
+        CollapseAllGroups -> 
+            ( { model | group2Expanded = (Dict.map (\k -> (\_ -> False)) model.group2Expanded) }, Cmd.none)
+        OpenAllGroups -> 
+            ( { model | group2Expanded = (Dict.map (\k -> (\_ -> True)) model.group2Expanded) }, Cmd.none)
+
 {-
         PostActuatorResult (Ok newStatuses) ->
             ( { model | groups = createGroups newStatuses, errorMsg = Nothing }, Cmd.none )
@@ -596,11 +607,18 @@ lightPercentage level =
     (level - 3000) / 40
 
 
-viewError : Model -> Html Msg
-viewError model =
-    case model.errorMsg of
+viewErrorMsg : Maybe String -> Html Msg
+viewErrorMsg msg =
+    case msg of
         Nothing -> div [] []
-        Just msg -> div [] [ button [onClick ClearErrorMessage] [ text "Clear"], text "Error: ", text msg ]
+        Just msg -> div [ Html.Attributes.style [ ( "color", "DarkRed" ) ]] [ text "Error Message ", button [onClick ClearErrorMessage] [ text "Clear"], text msg ]
+
+
+viewTestMsg : Maybe String -> Html Msg
+viewTestMsg msg =
+    case msg of
+        Nothing -> div [] []
+        Just msg -> div [Html.Attributes.style [ ( "background", "DarkSlateGrey" ), ( "color", "white" ) ]] [ text "Test Message ", button [onClick ClearTestMessage] [ text "Clear"], text msg ]
 
 
 view : Model -> Html Msg
@@ -611,11 +629,14 @@ view model =
             model.mdl
             [ Menu.bottomLeft ]
             [ Menu.item
-                [ Menu.onSelect PutModelInTestAsString ]
-                [ text "English (US)" ]
+                [ Menu.onSelect CollapseAllGroups ]
+                [ text "Collapse All Groups" ]
+            , Menu.item
+                [ Menu.onSelect OpenAllGroups ]
+                [ text "Open All Groups" ]
             , Menu.item
                 [ Menu.onSelect PutModelInTestAsString ]
-                [ text "français" ]
+                [ text "Show Model" ]
             ]
          , viewGroup viewScreens "ScreensZ" 100 model
          , viewGroup viewScreens "ScreensW" 200 model
@@ -624,11 +645,8 @@ view model =
          , viewGroup viewSwitches "Kinderen" 600 model
          , viewGroup viewSwitches "Buiten" 700 model
          , div [] [ Html.hr [] [] ]
-         , div [ Html.Attributes.style [ ( "background", "DarkSlateGrey" ), ( "color", "white" ) ] ]
-            [ button [ onClick PutModelInTestAsString ] [ text "Test" ]
-            , text model.test
-            ]
-         , viewError model
+         , viewErrorMsg model.errorMsg
+         , viewTestMsg model.testMsg
          ]
         )
         |> Scheme.topWithScheme Color.Green Color.Red
