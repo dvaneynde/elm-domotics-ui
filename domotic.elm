@@ -159,16 +159,15 @@ type Msg
 update : Msg -> Model -> ( Model, Cmd Msg )
 update msg model =
     case msg of
+        Mdl message_ ->
+            Material.update Mdl message_ model
+
         PutModelInTestAsString ->
 --            ( { model | testMsg = (toString { model | testMsg = "" }.groups) }, Cmd.none )
 --            ( { model | testMsg = (toString (Dict.get "Beneden" { model | testMsg = "" }.groups)) }, Cmd.none )
             ( { model | testMsg = Just (toString { model | testMsg = (Just "TestTestTest") }) }, Cmd.none )
-
         ClearTestMessage ->
             ( { model | testMsg = Nothing }, Cmd.none )
-
-        Mdl message_ ->
-            Material.update Mdl message_ model
 
         Clicked what ->
             ( model
@@ -233,7 +232,9 @@ update msg model =
             (  model, Cmd.none )
 
         PostActuatorResult (Err message) ->
-            ( { model | errorMsg = Just ("PostActuatorResult: " ++ (toString message)) }, Cmd.none )
+            -- ( { model | errorMsg = Just ("PostActuatorResult: " ++ (toString message)) }, Cmd.none )
+            ( Debug.log (toString message) model, Cmd.none)
+
         
         LocationChanged location ->
             ( { model | host = getHost location }, Cmd.none )
