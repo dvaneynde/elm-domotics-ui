@@ -1,4 +1,4 @@
-# elm-domotica-ui
+# elm-domotics-ui
 
 > Note: git log shows too many entries, repository was once an everything-combined repo, which was not a good idea.
 
@@ -12,16 +12,18 @@ npm install elm@0.18
 
 ## Development Run
 
-In domotic.elm, change urlBase to your host's IP, e.g. `192.168.0.10:80` or `localhost:80`.
+In domotic.elm, change `fixBackendHostPort` to your backend's host and port, e.g. `192.168.0.10:80` or `localhost:80`.
 
 Then:
 ```bash
 elm reactor
 ```
 
+Open your browser to http://localhost:8000
+
 ## Installation
 
-In domotic.elm, change urlBase to your host's IP, e.g. `192.168.0.10:80` or `localhost:80`.
+In domotic.elm, set `fixBackendHostPort` to `Nothing`.
 
 Next:
 

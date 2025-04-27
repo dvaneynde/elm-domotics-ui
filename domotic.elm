@@ -23,29 +23,31 @@ import Material.Menu as Menu
 ----------------------------------------------------------
 -- Domotics user interface
 ----------------------------------------------------------
-{- in Safari, Develop, "Disable Cross-Origin Restrictions"
+
+{- in Safari, Develop, "Disable Cross-Origin Restrictions".
    But when on same server no problem.
    https://developer.mozilla.org/en-US/docs/Web/HTTP/Access_control_CORS#Access-Control-Allow-Origin
 -}
+
 ----------------------------------------------------------
 -- URL's and WebSocket address
 
 {-
-   Set to Nothing for production use, set to backend if using Elm Reactor.
+   Set to Nothing for production use, set to backend host and port if using Elm Reactor.
    TODO make parameter of program, so that it is set to Nothing from index.html - see Navigation.programWithFlags
 -}
-fixHost : Maybe String
-fixHost =
-    Just "192.168.0.10:80"
-    --Just "127.0.0.1:80"
+fixBackendHostPort : Maybe String
+fixBackendHostPort =
+    --Just "192.168.0.10:80"
+    Just "127.0.0.1:80"
     --Nothing
 
 {-
-   Determines host and port to used for backend; see also fixHost
+   Host and port to used for backend; taken from URL of this webapp, unless fixBackendHostPort is set
 -}
-getHost : Location -> String
-getHost location =
-    case fixHost of
+getBackendHostPort : Location -> String
+getBackendHostPort location =
+    case fixBackendHostPort of
         Just hostAndPort ->
             hostAndPort
 
@@ -111,9 +113,10 @@ initialStatus =
     { name = "", kind = "", groupName = "", groupSeq = 0, description = "", status = "", extra = None }
 
 
+-- https://sporto.gitbooks.io/elm-tutorial/content/en-v01/07-routing/08-main.html
 init : Location -> ( Model, Cmd Msg )
 init location =
-    ( { groups = Dict.empty, group2Expanded = initGroups, errorMsg = Nothing, testMsg = Nothing, mdl = Material.model, host = getHost location }, Cmd.none )
+    ( { groups = Dict.empty, group2Expanded = initGroups, errorMsg = Nothing, testMsg = Nothing, mdl = Material.model, host = getBackendHostPort location }, Cmd.none )
 
 
 initGroups : Group2ExpandedDict
@@ -237,7 +240,7 @@ update msg model =
 
         
         LocationChanged location ->
-            ( { model | host = getHost location }, Cmd.none )
+            ( { model | host = getBackendHostPort location }, Cmd.none )
 
         ClearErrorMessage ->
             ( { model | errorMsg = Nothing }, Cmd.none )
