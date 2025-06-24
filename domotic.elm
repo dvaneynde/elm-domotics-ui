@@ -39,11 +39,12 @@ import Material.Menu as Menu
 fixBackendHostPort : Maybe String
 fixBackendHostPort =
     --Just "192.168.0.10:80"
-    Just "127.0.0.1:80"
-    --Nothing
+    --Just "127.0.0.1:80"
+    Nothing
 
 {-
-   Host and port to used for backend; taken from URL of this webapp, unless fixBackendHostPort is set
+   Host and port to use for backend; taken from URL of this webapp, unless fixBackendHostPort is set.
+   Note that "host" in javascript URL includes the port (if not 80 or 443) which is not according to standard: https://stackoverflow.com/questions/9260218/parts-of-a-url-host-port-path
 -}
 getBackendHostPort : Location -> String
 getBackendHostPort location =
@@ -55,18 +56,15 @@ getBackendHostPort location =
             location.host
 
 
-urlUpdateActuators : Model -> String
-urlUpdateActuators model =
-    "http://" ++ model.host ++ "/rest/actuators/"
+urlUpdateUiBlocks : Model -> String
+urlUpdateUiBlocks model =
+    "http://" ++ model.hostAndPort ++ "/rest/uiblocks/"
 
-
-
---"/rest/act/"
 
 
 wsStatus : Model -> String
 wsStatus model =
-    "ws://" ++ model.host ++ "/status/"
+    "ws://" ++ model.hostAndPort ++ "/status/"
 
 
 
@@ -105,7 +103,7 @@ type alias Groups =
     Dict.Dict String (List StatusRecord)
 
 type alias Model =
-    { groups : Groups, group2Expanded : Group2ExpandedDict, errorMsg : Maybe String, testMsg : Maybe String, mdl : Material.Model, host : String }
+    { groups : Groups, group2Expanded : Group2ExpandedDict, errorMsg : Maybe String, testMsg : Maybe String, mdl : Material.Model, hostAndPort : String }
 
 
 initialStatus : StatusRecord
@@ -116,7 +114,7 @@ initialStatus =
 -- https://sporto.gitbooks.io/elm-tutorial/content/en-v01/07-routing/08-main.html
 init : Location -> ( Model, Cmd Msg )
 init location =
-    ( { groups = Dict.empty, group2Expanded = initGroups, errorMsg = Nothing, testMsg = Nothing, mdl = Material.model, host = getBackendHostPort location }, Cmd.none )
+    ( { groups = Dict.empty, group2Expanded = initGroups, errorMsg = Nothing, testMsg = Nothing, mdl = Material.model, hostAndPort = getBackendHostPort location }, Cmd.none )
 
 
 initGroups : Group2ExpandedDict
@@ -152,8 +150,7 @@ type Msg
     | SliderMsg String Float
     | ToggleShowBlock String
     | NewStatusViaWs String
-    -- If POST returns new status, then PostActuatorResult (Result Http.Error (List StatusRecord))
-    | PostActuatorResult (Result Http.Error Bool)
+    | PostUiUpdateResult (Result Http.Error Bool)
     | LocationChanged Location
     | CollapseAllGroups
     | OpenAllGroups
@@ -169,6 +166,7 @@ update msg model =
 --            ( { model | testMsg = (toString { model | testMsg = "" }.groups) }, Cmd.none )
 --            ( { model | testMsg = (toString (Dict.get "Beneden" { model | testMsg = "" }.groups)) }, Cmd.none )
             ( { model | testMsg = Just (toString { model | testMsg = (Just "TestTestTest") }) }, Cmd.none )
+
         ClearTestMessage ->
             ( { model | testMsg = Nothing }, Cmd.none )
 
@@ -228,19 +226,20 @@ update msg model =
             ( { model | group2Expanded = (Dict.map (\k -> (\_ -> True)) model.group2Expanded) }, Cmd.none)
 
 {-
-        PostActuatorResult (Ok newStatuses) ->
+        PostUiUpdateResult (Ok newStatuses) ->
             ( { model | groups = createGroups newStatuses, errorMsg = Nothing }, Cmd.none )
 -}
-        PostActuatorResult (Ok bool) ->
+        PostUiUpdateResult (Ok bool) ->
             (  model, Cmd.none )
 
-        PostActuatorResult (Err message) ->
-            -- ( { model | errorMsg = Just ("PostActuatorResult: " ++ (toString message)) }, Cmd.none )
-            ( Debug.log (toString message) model, Cmd.none)
+        PostUiUpdateResult (Err message) ->
+            -- ( { model | errorMsg = Just ("PostUiUpdateResult: " ++ (toString message)) }, Cmd.none )
+            -- Gives an error,  'BadPayload "Given an invalid JSON: JSON Parse error: Unexpected EOF', but not really an error. See JavaScript console in browser: Probably because received body is empty, despite 204 No Content ELM still wants to parse it?
+            ( Debug.log ("PostUiUpdateResult: " ++ (toString message) ++"\n") model, Cmd.none)
 
         
         LocationChanged location ->
-            ( { model | host = getBackendHostPort location }, Cmd.none )
+            ( { model | hostAndPort = getBackendHostPort location }, Cmd.none )
 
         ClearErrorMessage ->
             ( { model | errorMsg = Nothing }, Cmd.none )
@@ -322,13 +321,14 @@ updateStatusViaRestCmd : Model -> String -> String -> Cmd Msg
 updateStatusViaRestCmd model name value =
     let
         url =
-            urlUpdateActuators model ++ name ++ "/" ++ value
+            urlUpdateUiBlocks model ++ name ++ "/" ++ value
 
         request =
             Http.post url Http.emptyBody (succeed True)
             -- if POST returns new statuses, use statusesDecoder instead of (succeed True)
+            -- https://sporto.gitbooks.io/elm-tutorial/content/en/08-edit/04-commands.html
     in
-        Http.send PostActuatorResult request
+        Http.send PostUiUpdateResult request
 
 
 
@@ -554,7 +554,7 @@ viewScreens groupName mdlID model =
         div [] (autoHtml ++ windHtml ++ lightHtml ++ screens)
 
 
--- true iff at least one actuator is on in the given group
+-- true iff at least one ui block is on in the given group
 somethingOn : Model -> String -> Bool
 somethingOn model groupName =
     let
