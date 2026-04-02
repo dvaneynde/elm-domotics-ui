@@ -4,30 +4,54 @@
 
 ## Development Environment
 
-Use ELM version 0.18.
+Use Elm 0.19.1.
 
 ```bash
-npm install elm@0.18
+% elm --version
+0.19.1
 ```
 
-## Development Run
+## Development Run with Production Backend
 
-In domotic.elm, change `fixBackendHostPort` to your backend's host and port, e.g. `192.168.0.10:80` or `localhost:80`.
+In [Domotic.elm](Domotic.elm), set `fixBackendHostPort` to your backend's host and port:
 
-Then:
+```elm
+fixBackendHostPort : Maybe String
+fixBackendHostPort =
+    Just "192.168.0.10:80"
+```
+
+Compile and serve locally:
+
 ```bash
-elm reactor
+elm make Domotic.elm --output domotic.js
+python3 -m http.server 8080
 ```
 
-Open your browser to http://localhost:8000
+Open http://localhost:8080 in Safari.
+
+Because the backend is on a different host, you need to disable CORS in Safari:
+**Develop menu → Disable Cross-Origin Restrictions**
+
+(The Develop menu can be enabled in Safari → Settings → Advanced → Show features for web developers.)
+
+> Note: `elm reactor` does not work for this app because it serves the Elm file directly,
+> bypassing `index.html` — which means the WebSocket port never gets wired up.
 
 ## Installation
 
-In domotic.elm, set `fixBackendHostPort` to `Nothing`.
+In [Domotic.elm](Domotic.elm), set `fixBackendHostPort` to `Nothing` so the backend URL
+is taken from the browser's address bar:
 
-Next:
+```elm
+fixBackendHostPort : Maybe String
+fixBackendHostPort =
+    Nothing
+```
+
+Then compile and deploy:
 
 ```bash
-elm make domotic.elm --output domotic.js
-scp domotic.js domotica3:/home/dirk/domotic/static
+elm make Domotic.elm --output domotic.js
+scp domotic.js index.html domotica3:/home/dirk/domotic/static
 ```
