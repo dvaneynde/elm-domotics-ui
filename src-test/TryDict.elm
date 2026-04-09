@@ -1,11 +1,12 @@
-module Main exposing (..)
+module TryDict exposing (..)
 
 import Html exposing (text)
 import Dict
 
 
+main : Html.Html msg
 main =
-    text ("TEST: " ++ toString (isOpen (Dict.fromList [ ( "Screen", True ), ( "Buiten", False ) ]) "Buiten"))
+    text ("TEST: " ++ Debug.toString (isOpen (Dict.fromList [ ( "Screen", True ), ( "Buiten", False ) ]) "Buiten"))
 
 
 isOpen : Dict.Dict String Bool -> String -> ( Bool, Dict.Dict String Bool )

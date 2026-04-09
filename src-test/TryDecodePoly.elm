@@ -1,4 +1,4 @@
-module Main exposing (..)
+module TryDecodePoly exposing (..)
 
 import Html exposing (text)
 import Json.Decode as Decode exposing (..)
@@ -31,7 +31,7 @@ decodeStatuses strJson =
                 ( value, "" )
 
             Err error ->
-                ( [], error )
+                ( [], Decode.errorToString error )
 
 
 statusesDecoder : Decoder (List StatusRecord)
@@ -115,6 +115,7 @@ status =
 {-
 -}
 
+main : Html.Html msg
 main =
     --text ("Decoded: " ++ (toString (decodeStatuses status)))
     let
@@ -122,4 +123,4 @@ main =
             decodeStatuses status
 
     in
-        text ( "Error: " ++ error ++ "<br>, value: " ++ (toString value))
+        text ( "Error: " ++ error ++ "<br>, value: " ++ (Debug.toString value))

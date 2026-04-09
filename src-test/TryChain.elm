@@ -1,4 +1,4 @@
-module Main exposing (..)
+module TryChain exposing (..)
 
 import Html exposing (text)
 import Json.Decode exposing (..)
@@ -22,12 +22,12 @@ type alias HtmlMsg =
 
 widgetA : Int -> Model -> HtmlMsg
 widgetA nr model =
-    "Widget AAA [" ++ (toString nr) ++ "] onto model '" ++ model ++ "'"
+    "Widget AAA [" ++ (String.fromInt nr) ++ "] onto model '" ++ model ++ "'"
 
 
 widgetB : String -> Int -> Model -> HtmlMsg
 widgetB attribute nr model =
-    "widget BBB [" ++ (toString nr) ++ "] with attribute {" ++ attribute ++ "} onto model '" ++ model ++ "'"
+    "widget BBB [" ++ (String.fromInt nr) ++ "] with attribute {" ++ attribute ++ "} onto model '" ++ model ++ "'"
 
 
 view : Model -> HtmlMsg
@@ -44,8 +44,9 @@ view model =
     in
         -- widgetList is list of functions Model -> Html, so apply model to them to generate Html Msg
         -- each time view is to be built
-        toString (List.map (\widget -> widget model) widgetList)
+        Debug.toString (List.map (\widget -> widget model) widgetList)
 
 
+main : Html.Html msg
 main =
     text (view "model_185468434")

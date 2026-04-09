@@ -11,9 +11,15 @@ Use Elm 0.19.1.
 0.19.1
 ```
 
+## Running Tests
+
+```bash
+elm-test "src-test/TestDecode.elm"
+```
+
 ## Development Run with Production Backend
 
-In [Domotic.elm](Domotic.elm), set `fixBackendHostPort` to your backend's host and port:
+In [src/Domotic.elm](src/Domotic.elm), set `fixBackendHostPort` to your backend's host and port:
 
 ```elm
 fixBackendHostPort : Maybe String
@@ -24,7 +30,7 @@ fixBackendHostPort =
 Compile and serve locally:
 
 ```bash
-elm make Domotic.elm --output domotic.js
+elm make src/Domotic.elm --output domotic.js
 python3 -m http.server 8080
 ```
 
@@ -40,7 +46,7 @@ Because the backend is on a different host, you need to disable CORS in Safari:
 
 ## Installation
 
-In [Domotic.elm](Domotic.elm), set `fixBackendHostPort` to `Nothing` so the backend URL
+In [src/Domotic.elm](src/Domotic.elm), set `fixBackendHostPort` to `Nothing` so the backend URL
 is taken from the browser's address bar:
 
 ```elm
@@ -52,6 +58,6 @@ fixBackendHostPort =
 Then compile and deploy:
 
 ```bash
-elm make Domotic.elm --output domotic.js
+elm make src/Domotic.elm --output domotic.js
 scp domotic.js index.html domotica3:/home/dirk/domotic/static
 ```
