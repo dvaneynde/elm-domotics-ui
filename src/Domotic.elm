@@ -32,8 +32,8 @@ port newStatusViaWs : (String -> msg) -> Sub msg
 -}
 fixBackendHostPort : Maybe String
 fixBackendHostPort =
-    --Just "192.168.0.10:80"
-    --Just "127.0.0.1:80"
+    -- Just "192.168.0.10:80"
+    -- Just "127.0.0.1:80"
     Nothing
 
 {-
@@ -60,7 +60,7 @@ getBackendHostPort url =
 
 urlUpdateUiBlocks : Model -> String
 urlUpdateUiBlocks model =
-    "http://" ++ model.hostAndPort ++ "/rest/uiblocks/"
+    "http://" ++ model.hostAndPort ++ "/rest/actuators/"
 
 
 
@@ -139,7 +139,7 @@ init _ url key =
       }
     , Cmd.batch
         [ Http.get
-            { url = "http://" ++ hostAndPort ++ "/rest/uiblocks/"
+            { url = "http://" ++ hostAndPort ++ "/rest/statuses/"
             , expect = Http.expectJson GotInitialStatus statusesDecoder
             }
         , connectWebSocket ("ws://" ++ hostAndPort ++ "/status/")

@@ -58,6 +58,6 @@ fixBackendHostPort =
 Then compile and deploy:
 
 ```bash
-elm make src/Domotic.elm --output domotic.js
+elm make src/Domotic.elm --output domotic.js && \
 scp domotic.js index.html domotica3:/home/dirk/domotic/static
 ```
